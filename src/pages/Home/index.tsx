@@ -34,6 +34,8 @@ export function Home() {
 
   function handleCreateNewCycle(data: NewCycleFormData) {
     console.log(data)
+
+    form.reset()
   }
 
   const task = form.watch('task')
