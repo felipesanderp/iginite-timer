@@ -25,6 +25,8 @@ interface Cycle {
 interface CyclesContextType {
   activeCycle: Cycle | undefined
   activeCycleId: string | null
+  amountSecondsPassed: number
+  setSecondsPassed: (seconds: number) => void
   markCurrentCycleAsFinished: () => void
 }
 
@@ -43,6 +45,7 @@ type NewCycleFormData = zod.infer<typeof newCycleFormValidationSchema>
 export function Home() {
   const [cycles, setCycles] = useState<Cycle[]>([])
   const [activeCycleId, setActiveCycleId] = useState<string | null>(null)
+  const [amountSecondsPassed, setAmountSecondsPassed] = useState(0)
 
   const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
 
@@ -53,6 +56,10 @@ export function Home() {
       minutesAmount: 0,
     },
   })
+
+  function setSecondsPassed(seconds: number) {
+    setAmountSecondsPassed(seconds)
+  }
 
   function markCurrentCycleAsFinished() {
     setCycles((state) =>
@@ -103,7 +110,13 @@ export function Home() {
     <HomeContainer>
       <form onSubmit={newCycleForm.handleSubmit(handleCreateNewCycle)}>
         <CyclesContext.Provider
-          value={{ activeCycle, activeCycleId, markCurrentCycleAsFinished }}
+          value={{
+            activeCycle,
+            activeCycleId,
+            amountSecondsPassed,
+            setSecondsPassed,
+            markCurrentCycleAsFinished,
+          }}
         >
           <FormProvider {...newCycleForm}>
             <NewCycleForm />
