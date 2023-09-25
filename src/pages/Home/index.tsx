@@ -1,5 +1,8 @@
 import { HandPalm, Play } from 'phosphor-react'
-import { createContext, useEffect, useState } from 'react'
+import { createContext, useState } from 'react'
+import { FormProvider, useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as zod from 'zod'
 
 import {
   HomeContainer,
@@ -27,11 +30,29 @@ interface CyclesContextType {
 
 export const CyclesContext = createContext({} as CyclesContextType)
 
+const newCycleFormValidationSchema = zod.object({
+  task: zod.string().min(1, 'Informe a tarefa'),
+  minutesAmount: zod
+    .number()
+    .min(5, 'O ciclo precisa ser de no mínimo 5 minutos')
+    .max(60, 'O ciclo precisa ser de no máximo 60 minutos'),
+})
+
+type NewCycleFormData = zod.infer<typeof newCycleFormValidationSchema>
+
 export function Home() {
   const [cycles, setCycles] = useState<Cycle[]>([])
   const [activeCycleId, setActiveCycleId] = useState<string | null>(null)
 
   const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
+
+  const newCycleForm = useForm<NewCycleFormData>({
+    resolver: zodResolver(newCycleFormValidationSchema),
+    defaultValues: {
+      task: '',
+      minutesAmount: 0,
+    },
+  })
 
   function markCurrentCycleAsFinished() {
     setCycles((state) =>
@@ -59,7 +80,7 @@ export function Home() {
     setActiveCycleId(id)
     setAmountSecondsPassed(0)
 
-    form.reset()
+    newCycleForm.reset()
   }
 
   function handleInterruptCycle() {
@@ -75,16 +96,18 @@ export function Home() {
     setActiveCycleId(null)
   }
 
-  const task = form.watch('task')
+  const task = newCycleForm.watch('task')
   const isSubmitDisabled = !task
 
   return (
     <HomeContainer>
-      <form onSubmit={form.handleSubmit(handleCreateNewCycle)}>
+      <form onSubmit={newCycleForm.handleSubmit(handleCreateNewCycle)}>
         <CyclesContext.Provider
           value={{ activeCycle, activeCycleId, markCurrentCycleAsFinished }}
         >
-          <NewCycleForm />
+          <FormProvider {...newCycleForm}>
+            <NewCycleForm />
+          </FormProvider>
 
           <Countdown />
 
